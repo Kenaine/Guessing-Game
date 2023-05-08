@@ -1,10 +1,8 @@
 import tkinter as tk
 import pygame
-import tkinter.font as font
 from tkinter import ttk
 from tkinter import *
-from tkinter.ttk import *
-from tkinter import messagebox 
+from tkinter import messagebox
 import random
 
 
@@ -13,23 +11,36 @@ window.title("Guessing Game")
 window.geometry("800x500")
 window.resizable(False,False)
 
-#Retro Font
-myFont = font.Font(family="Pixeltype")
-
 #Music
 pygame.mixer.init()
 pygame.mixer.music.load('vitality.mp3')
 pygame.mixer.music.play(-1)
+pygame.mixer.music.set_volume(0.4)
 
+muteButton = tk.PhotoImage(file="mute.png")
+playButton = tk.PhotoImage(file="play.png")
+
+status = 0
 def musicMute():
-   statusMusic = mutevar.get()
-   print(statusMusic)
-   if statusMusic ==1:
+    global status
+    if status==0:
        pygame.mixer.music.pause()
-       buttonMute.config(text="Unmute")
-   else:
+       buttonMute.config(image=muteButton)
+       buttonMute2.config(image=muteButton)
+       buttonMute3.config(image=muteButton)
+       buttonMute4.config(image=muteButton)
+       status = 1
+    else:
        pygame.mixer.music.unpause()
-       buttonMute.config(text="Mute")
+       buttonMute.config(image=playButton)
+       buttonMute2.config(image=playButton)
+       buttonMute3.config(image=playButton)
+       buttonMute4.config(image=playButton)
+       status= 0
+
+def click_sound():
+    sfx_button = pygame.mixer.Sound('click.mp3')
+    sfx_button.play()
 ################################################################
 
 frame1 = tk.Frame(window)
@@ -37,66 +48,97 @@ frame2 = tk.Frame(window)
 frame3 = tk.Frame(window)
 frame4 = tk.Frame(window)
 
-
+frame1.pack()
 Answer = 0
 Maxval = 0
 Chances = 0
 
-def DifficultySelect():
-    global Answer
+
+def clear():
     global Maxval
     global Chances
+    global Randomrange
+    if Maxval > 0:
+        Maxval = 0
+        Chances = 0
+        Randomrange = 0
+
+    cb_diff.set("")
+    lbl_details2.config(text=f'0:0')
+    lbl_details4.config(text=f'0')
+
+
+def DifficultySelect():
+    global Maxval
+    global Chances
+    global Randomrange
     choice = str(difficulties.get())
     if choice == '':
         messagebox.showwarning("Oops!", "Please select a difficulty first!")
     elif choice == 'Easy':
-        Answer = random.randint(1, 10)
         Maxval = 10
         Chances = 3
         lbl_details2.config(text=f'1:{Maxval}')
         lbl_details4.config(text=f'{Chances}')
-        return Answer, Chances, Maxval
+        return Chances, Maxval
     elif choice == 'Medium':
-        Answer = random.randint(1, 25)
         Maxval = 25
         Chances = 5
         lbl_details2.config(text=f'1:{Maxval}')
         lbl_details4.config(text=f'{Chances}')
-        return Answer, Chances, Maxval
+        return Chances, Maxval
     elif choice == 'Hard':
-        Answer = random.randint(1, 50)
         Maxval = 50
         Chances = 8
         lbl_details2.config(text=f'1:{Maxval}')
         lbl_details4.config(text=f'{Chances}')
-        return Answer, Chances, Maxval
+        return Chances, Maxval
     elif choice == 'Very Hard':
-        Answer = random.randint(1, 100)
         Maxval = 100
         Chances = 10
         lbl_details2.config(text=f'1:{Maxval}')
         lbl_details4.config(text=f'{Chances}')
-        return Answer, Chances, Maxval
+        return Chances, Maxval
     elif choice == 'Challenge':
-        Answer = random.randint(1, 500)
         Maxval = 500
         Chances = 12
         lbl_details2.config(text=f'1:{Maxval}')
         lbl_details4.config(text=f'{Chances}')
-        return Answer, Chances, Maxval
+        return Chances, Maxval
     elif choice == 'Random':
-        Randomrange = random.randint(1, random.randint(1,10000))
-        Answer = random.randint(1, Randomrange)
         Maxval = Randomrange
         Chances = 10
         lbl_details2.config(text=f'1:{Maxval}')
         lbl_details4.config(text=f'{Chances}')
-        return Answer, Chances, Maxval
+        return Chances, Maxval, Randomrange
 
-    else:
-        pass
 
-frame1.pack()
+def randomizer():
+    global Answer
+    global Randomrange
+    choice = str(difficulties.get())
+    if choice == 'Easy':
+        Answer = random.randint(1, 10)
+        return Answer
+    elif choice == 'Medium':
+        Answer = random.randint(1, 25)
+        return Answer
+    elif choice == 'Hard':
+        Answer = random.randint(1, 50)
+        return Answer
+    elif choice == 'Very Hard':
+        Answer = random.randint(1, 100)
+        return Answer
+    elif choice == 'Challenge':
+        Answer = random.randint(1, 500)
+        return Answer
+    elif choice == 'Random':
+        Randomrange = random.randint(1, random.randint(1, 10000))
+        Answer = random.randint(1, Randomrange)
+        return Answer
+print(Answer)
+
+
 
 def settings():
     frame1.pack_forget()
@@ -105,22 +147,23 @@ def settings():
 def home():
     frame2.pack_forget()
     frame3.pack_forget()
+    frame4.pack_forget()
     frame1.pack()
-
 
 def start():
     frame1.pack_forget()
     frame3.pack()
 
-def forget_diff():
-    cb_diff.set('')
+def credits():
+    frame1.pack_forget()
+    frame4.pack()
+
 
 def GuessGame():
-    if Answer == 0:
+    if Maxval == 0:
         messagebox.showwarning("Oops!", "Please select a difficulty first!")
-        frame3.pack_forget()
-        frame2.pack()
     else:
+        print(Answer)
         frame3.pack()
         frame2.pack_forget()
         GameInterface =frame3
@@ -136,7 +179,7 @@ def GuessGame():
         # Guessing
         lbl_guess = ttk.Label(frame3, text='Your Guess:', font="Pixeltype 15 bold", background="white")
         ent_guess = ttk.Entry(frame3, validate='key', validatecommand=(valid, '%S'))
-        ent_guess['font']= myFont
+
 
         greaterguesses = []
         lessguesses = []
@@ -161,8 +204,9 @@ def GuessGame():
             GuessCount = len(greaterguesses) + len(lessguesses)
             if GuessCount == (Chances - 1) and Guess != Answer:
                 messagebox.showinfo("Oof!",
-                                    f"You didn't guess it in the number of attempts given...\nDo better next time!")
+                                    f"You didn't guess it in the number of attempts given...\n\nBetter luck next time!\n\nThe lucky number is {Answer}!")
                 GameInterface.pack_forget()
+                clear()
                 frame1.pack()
             elif Guess < Answer:
                 greaterguesses.append(Guess)
@@ -177,10 +221,10 @@ def GuessGame():
                 messagebox.showinfo("Congratulations!",
                                     f"You got it right!\nThe answer is {Answer}!\nIt only took you {FinalGuessCount} guesses!")
                 GameInterface.pack_forget()
+                clear()
                 frame2.pack()
 
-        btn_guess = tk.Button(frame3, text='Guess', command=Guess)
-        btn_guess['font'] = myFont
+        btn_guess = tk.Button(frame3, text='Guess',font="Pixeltype 20", command=lambda: [Guess(), click_sound()])
 
         lbl_game.place(x=400, y=80, anchor="center")
 
@@ -193,8 +237,7 @@ def GuessGame():
         lbl_greaterthan.place(x=300, y=250, anchor="center")
         greaterthan.place(x=300, y=350, anchor="center")
 
-        buttonQuit = tk.Button(frame3, text="Quit", command=home)
-        buttonQuit['font']= myFont
+        buttonQuit = tk.Button(frame3, text="Quit", font="Pixeltype 20", command=lambda: [home(), clear(), click_sound()])
         buttonQuit.place(x=400, y=200, anchor="center")
 
 
@@ -230,70 +273,83 @@ canvas3.create_image(0,0, image=bgBoard, anchor=NW)
 
 test_lbl3 = tk.Label(canvas3, image=bgBoard)
 test_lbl3.place()
+#####
 
+canvas4 = tk.Canvas(frame4, width=800, height=500)
+canvas4.pack()
+
+canvas4.create_image(0,0, image=bgFlappy, anchor=NW)
+
+test_lbl4 = tk.Label(canvas4, image=bgFlappy2)
+test_lbl4.place()
 ################################################################
 
 #MAIN MENU
 labelHome = tk.Label(frame1, text="Guessing Game", font="Pixeltype 80 bold", background="#0099CC")
 labelHome.place(x=400, y=100, anchor="center")
 
-buttonStart = tk.Button(frame1, text="Start Game", command=settings)
-buttonStart['font'] = myFont
+buttonStart = tk.Button(frame1, text="Start Game",font="Pixeltype 20",command=lambda:[click_sound(),settings(),])
 buttonStart.place(x=400, y=200, anchor="center")
 
-buttonSettings = tk.Button(frame1, text="Help")
-buttonSettings['font'] = myFont
-buttonSettings.place(x=400, y=250, anchor="center")
+buttonCredits = tk.Button(frame1, text="Credits",font="Pixeltype 20", height=1, width=10, command=lambda:[click_sound(),credits()])
+buttonCredits.place(x=400, y=250, anchor="center")
 
-buttonCredits = tk.Button(frame1, text="Credits")
-buttonCredits['font'] = myFont
-buttonCredits.place(x=400, y=300, anchor="center")
-
-mutevar = tk.IntVar()
-buttonMute = tk.Checkbutton(frame1, text="Mute",variable=mutevar, command=musicMute, onvalue=1, offvalue=0)
-buttonMute['font'] = myFont
+buttonMute = tk.Button(frame1,image=playButton, command=musicMute)
 buttonMute.place(x=650, y=450, anchor="center")
 
 ################################################################
 
 #DIFFICULTY MENU
-labelSettings = tk.Label(frame2, text="Set Difficulty", font="Pixeltype 80 bold", background="#73E0FF")
-labelSettings.place(x=470, y=80, anchor="center")
+labelSettings = tk.Label(frame2, text="Set Difficulty", font="Pixeltype 50 bold", background="#73E0FF")
+labelSettings.place(x=410, y=80, anchor="center")
 
-labelDifficulty = tk.Label(frame2, text="Select your Difficulty:", font=myFont, background="#73E0FF")
-labelDifficulty.place(x=310, y=150, anchor="center")
+labelDifficulty = tk.Label(frame2, text="Select your Difficulty:", font="Pixeltype 20", background="#73E0FF")
+labelDifficulty.place(x=300, y=150, anchor="center")
 
 difficulties = tk.StringVar()
-cb_diff = ttk.Combobox(frame2, textvariable=difficulties)
+frame2.option_add('*TCombobox*Listbox.font', 'Pixeltype')
+cb_diff = ttk.Combobox(frame2, textvariable=difficulties, font="Pixeltype 20", width = 15)
 cb_diff['values'] = ['Easy', 'Medium', 'Hard', 'Very Hard', 'Challenge','Random']
 cb_diff['state'] = 'readonly'
 cb_diff.set('')
-cb_diff['font'] = myFont
 cb_diff.place(x=480, y=150, anchor="center")
 
-btn_setdiff = tk.Button(frame2, text='Set Difficulty!', command=DifficultySelect)
-btn_setdiff['font'] = myFont
+btn_setdiff = tk.Button(frame2, text='Set Difficulty!',font="Pixeltype 20", command=lambda:[randomizer(),DifficultySelect(),click_sound()])
 btn_setdiff.place(x=450, y=200, anchor="center")
 
-buttonHome = tk.Button(frame2, text="Play!", command=lambda:[GuessGame(),forget_diff()])
-buttonHome['font'] = myFont
-buttonHome.place(x=450, y=250, anchor="center")
+buttonPlay = tk.Button(frame2, text="Play!", font="Pixeltype 20",width=12,command=lambda: [click_sound(), GuessGame()])
+buttonPlay.place(x=450, y=250, anchor="center")
 
-
-buttonHome = tk.Button(frame2, text="Home", command=home)
-buttonHome['font'] = myFont
+buttonHome = tk.Button(frame2, text="Home",font="Pixeltype 20",width=12 ,command=lambda: [click_sound(), home(), clear()])
 buttonHome.place(x=450, y=300, anchor="center")
 
-lbl_details = tk.Label(frame2, text='Range of Numbers:', font=myFont)
+lbl_details = tk.Label(frame2, text='Range of Numbers:', font="Pixeltype 20")
 lbl_details.place(x=320, y=350, anchor="center")
 
-lbl_details2 = tk.Label(frame2, text='0:0',font=myFont)
+lbl_details2 = tk.Label(frame2, text='0:0',font="Pixeltype 20")
 lbl_details2.place(x=480, y=350, anchor="center")
 
-lbl_details3 = tk.Label(frame2, font=myFont,text='Number of Attempts:')
+lbl_details3 = tk.Label(frame2, font="Pixeltype 20",text='Number of Attempts:')
 lbl_details3.place(x=320, y=400, anchor="center")
 
-lbl_details4 = tk.Label(frame2, font=myFont,text='0')
+lbl_details4 = tk.Label(frame2, font="Pixeltype 20",text='0')
 lbl_details4.place(x=480, y=400, anchor="center")
+
+buttonMute2 = tk.Button(frame2,image=playButton, command=musicMute)
+buttonMute2.place(x=650, y=450, anchor="center")
+
+buttonMute3 = tk.Button(frame3,image=playButton, command=musicMute)
+buttonMute3.place(x=650, y=410, anchor="center")
 ################################################################
+
+#Creditscreen
+labelCredits = tk.Label(frame4, text="Credits", font="Pixeltype 80 bold", background="#0099CC")
+labelCredits.place(x=400, y=100, anchor="center")
+
+buttonCreditsHome = tk.Button(frame4, text="Home",font="Pixeltype 20",width=12 ,command=lambda: [home(),click_sound()])
+buttonCreditsHome.place(x=400, y=400, anchor="center")
+
+buttonMute4 = tk.Button(frame4,image=playButton, command=musicMute)
+buttonMute4.place(x=400, y=450, anchor="center")
+
 window.mainloop()
